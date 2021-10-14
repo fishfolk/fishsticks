@@ -1,0 +1,10 @@
+[package]
+name = "fishsticks"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2" }
+
+[features]
+bundled-sdl2 = ["sdl2/bundled"]
