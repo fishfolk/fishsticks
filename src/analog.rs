@@ -10,14 +10,7 @@ pub const ANALOG_MAX: f32 = 1.0;
 
 /// Wrapper around `f32`.
 #[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct AnalogInputValue(f32);
-
-impl AnalogInputValue {
-    /// Gets the internal float.
-    pub fn get(&self) -> f32 {
-        self.0
-    }
-}
+pub(crate) struct AnalogInputValue(f32);
 
 impl From<i16> for AnalogInputValue {
     fn from(value: i16) -> Self {
@@ -56,14 +49,20 @@ where
     T: Hash + Eq,
 {
     /// Gets the value of an analog input.
-    pub fn value(&self, input: T) -> Option<AnalogInputValue> {
-        self.inputs.get(&input).copied()
+    ///
+    /// Defaults to returning `0.0` if the input has not been read yet.
+    pub fn value(&self, input: T) -> f32 {
+        if let Some(&value) = self.inputs.get(&input) {
+            f32::from(value)
+        } else {
+            0.0
+        }
     }
 
     /// Checks if an analog input just left the deadzone.
-    pub fn just_activated(&self, input: T) -> Option<AnalogInputValue> {
+    pub fn just_activated(&self, input: T) -> Option<f32> {
         if self.just_activated.contains(&input) {
-            self.value(input)
+            Some(self.value(input))
         } else {
             None
         }
@@ -81,11 +80,11 @@ where
 {
     pub(crate) fn set(&mut self, input: T, value: AnalogInputValue) {
         let old_value = self.inputs.insert(input, value);
-        let value = value.get();
-        let activation_threshold = self.activation_threshold.get();
+        let value = f32::from(value);
+        let activation_threshold = f32::from(self.activation_threshold);
 
         if let Some(old_value) = old_value {
-            let old_value = old_value.get();
+            let old_value = f32::from(old_value);
             if value.abs() < activation_threshold {
                 self.just_activated.remove(&input);
                 if old_value.abs() >= activation_threshold {
