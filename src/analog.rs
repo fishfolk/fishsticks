@@ -100,7 +100,7 @@ where
                     self.just_activated.insert(input);
                 }
             }
-        } else if value >= activation_threshold {
+        } else if value.abs() >= activation_threshold {
             self.just_activated.insert(input);
             self.just_deactivated.remove(&input);
         }
