@@ -51,12 +51,6 @@ impl From<Deadzone> for f32 {
     }
 }
 
-enum DeadzoneTransition {
-    Activated,
-    Deactivated,
-    None,
-}
-
 /// Container for analog inputs.
 #[derive(Debug)]
 pub struct AnalogInput<T> {
@@ -137,33 +131,46 @@ where
 {
     pub(crate) fn set(&mut self, input: T, value: AnalogInputValue) {
         let old_value = self.inputs.insert(input, value);
+        let value = f32::from(value);
+        let deadzone = f32::from(self.deadzone);
+        let deadzone_digital = f32::from(self.deadzone_digital);
 
-        match Self::crossed_deadzone(value, old_value, self.deadzone) {
-            DeadzoneTransition::Activated => {
+        if let Some(old_value) = old_value {
+            let old_value = f32::from(old_value);
+
+            if value.abs() < deadzone {
+                self.just_activated.remove(&input);
+                if old_value.abs() >= deadzone {
+                    self.just_deactivated.insert(input);
+                }
+            } else {
+                self.just_deactivated.remove(&input);
+                // It is possible for an analog input to completely pass through the deadzone
+                // between updates. In that case, both the old and new values would exceed the
+                // deadzone, but they would have opposite signs.
+                if old_value.abs() < deadzone || value.signum() != old_value.signum() {
+                    self.just_activated.insert(input);
+                }
+            }
+
+            if value.abs() < deadzone_digital {
+                self.just_activated_digital.remove(&input);
+                if old_value.abs() >= deadzone_digital {
+                    self.just_deactivated_digital.insert(input);
+                }
+            } else {
+                self.just_deactivated_digital.remove(&input);
+                if old_value.abs() < deadzone_digital || value.signum() != old_value.signum() {
+                    self.just_activated_digital.insert(input);
+                }
+            }
+        } else {
+            if value.abs() >= deadzone {
                 self.just_activated.insert(input);
                 self.just_deactivated.remove(&input);
             }
-            DeadzoneTransition::Deactivated => {
-                self.just_activated.remove(&input);
-                self.just_deactivated.insert(input);
-            }
-            DeadzoneTransition::None => {
-                self.just_activated.remove(&input);
-                self.just_deactivated.remove(&input);
-            }
-        }
-
-        match Self::crossed_deadzone(value, old_value, self.deadzone_digital) {
-            DeadzoneTransition::Activated => {
+            if value.abs() >= deadzone_digital {
                 self.just_activated_digital.insert(input);
-                self.just_deactivated_digital.remove(&input);
-            }
-            DeadzoneTransition::Deactivated => {
-                self.just_activated_digital.remove(&input);
-                self.just_deactivated_digital.insert(input);
-            }
-            DeadzoneTransition::None => {
-                self.just_activated_digital.remove(&input);
                 self.just_deactivated_digital.remove(&input);
             }
         }
@@ -174,34 +181,6 @@ where
         self.just_deactivated.clear();
         self.just_activated_digital.clear();
         self.just_deactivated_digital.clear();
-    }
-
-    fn crossed_deadzone(
-        new_value: AnalogInputValue,
-        old_value: Option<AnalogInputValue>,
-        deadzone: Deadzone,
-    ) -> DeadzoneTransition {
-        let new_value = f32::from(new_value);
-        let deadzone = f32::from(deadzone);
-
-        if let Some(old_value) = old_value {
-            let old_value = f32::from(old_value);
-
-            if new_value.abs() <= deadzone && old_value.abs() > deadzone {
-                DeadzoneTransition::Deactivated
-            } else if old_value.abs() <= deadzone || new_value.signum() != old_value.signum() {
-                // It is possible for an analog input to completely pass through the deadzone
-                // between updates. In that case, both the old and new values would exceed the
-                // deadzone, but they would have opposite signs.
-                DeadzoneTransition::Activated
-            } else {
-                DeadzoneTransition::None
-            }
-        } else if new_value.abs() > deadzone {
-            DeadzoneTransition::Activated
-        } else {
-            DeadzoneTransition::None
-        }
     }
 }
 
