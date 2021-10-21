@@ -3,8 +3,10 @@ name = "fishsticks"
 version = "0.1.1"
 edition = "2018"
 
-[dependencies]
-sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2" }
-
 [features]
 bundled-sdl2 = ["sdl2/bundled"]
+
+[dependencies]
+cfg-if = "1.0.0"
+#gilrs = { version = "0.8.1", optional = true }
+sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2" }
