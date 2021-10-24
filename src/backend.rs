@@ -8,12 +8,15 @@ cfg_if::cfg_if! {
         mod implementation;
     }
 }
+
 pub use implementation::*;
 
 use std::collections::HashMap;
 
+use crate::Result;
+
 pub trait GamepadSystem {
-    fn update(&mut self, gamepads: &mut HashMap<GamepadId, super::Gamepad>) -> Result<(), String>;
+    fn update(&mut self, gamepads: &mut HashMap<GamepadId, super::Gamepad>) -> Result<()>;
 }
 
 pub trait Detachable {

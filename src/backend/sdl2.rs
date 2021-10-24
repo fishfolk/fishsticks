@@ -1,7 +1,10 @@
 pub use sdl2::controller::{Axis, Button};
 
 use crate::analog::AnalogInputValue;
+
 use std::collections::HashMap;
+
+use crate::Result;
 
 /// The instance Id of a gamepad.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -21,7 +24,7 @@ pub struct GamepadContext {
 }
 
 impl GamepadContext {
-    pub fn init() -> Result<Self, String> {
+    pub fn init() -> Result<Self> {
         let sdl_context = sdl2::init()?;
         let controller_subsystem = sdl_context.game_controller()?;
 
@@ -33,7 +36,7 @@ impl GamepadContext {
 }
 
 impl super::GamepadSystem for GamepadContext {
-    fn update(&mut self, gamepads: &mut HashMap<GamepadId, crate::Gamepad>) -> Result<(), String> {
+    fn update(&mut self, gamepads: &mut HashMap<GamepadId, crate::Gamepad>) -> Result<()> {
         let mut event_pump = self.sdl_context.event_pump()?;
 
         for (_, gamepad) in gamepads.iter_mut() {
