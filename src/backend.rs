@@ -11,14 +11,15 @@ cfg_if::cfg_if! {
 
 pub use implementation::*;
 
+use crate::{Gamepad, GamepadId};
 use std::collections::HashMap;
 
 use crate::Result;
 
-pub trait GamepadSystem {
-    fn update(&mut self, gamepads: &mut HashMap<GamepadId, super::Gamepad>) -> Result<()>;
+pub trait Backend {
+    fn update(&mut self, gamepads: &mut HashMap<GamepadId, Gamepad>) -> Result<()>;
 }
 
-pub trait Detachable {
+pub trait BackendGamepad {
     fn connected(&self) -> bool;
 }
