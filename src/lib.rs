@@ -10,17 +10,21 @@ pub mod digital;
 
 mod backend;
 
-pub use backend::GamepadId;
 pub use backend::{Axis, Button};
 
 use analog::AnalogInput;
-use backend::{Detachable, GamepadSystem};
+use backend::{Backend, BackendGamepad};
+use backend::{ImplementationContext, ImplementationGamepad};
 use digital::DigitalInput;
 use std::collections::HashMap;
 
+/// The instance Id of a gamepad.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct GamepadId(backend::ImplementationId);
+
 /// Holds the state of a gamepad.
 pub struct Gamepad {
-    internal_gamepad: backend::Gamepad,
+    internal_gamepad: ImplementationGamepad,
     /// Analog inputs, such as thumbsticks.
     pub analog_inputs: AnalogInput<Axis>,
     /// Digital inputs, such as buttons.
@@ -28,7 +32,7 @@ pub struct Gamepad {
 }
 
 impl Gamepad {
-    fn new(internal_gamepad: backend::Gamepad) -> Self {
+    fn new(internal_gamepad: ImplementationGamepad) -> Self {
         Self {
             internal_gamepad,
             analog_inputs: Default::default(),
@@ -46,14 +50,14 @@ impl Gamepad {
 ///
 /// Only one `GamepadContext` should be alive at any time.
 pub struct GamepadContext {
-    gamepad_system: backend::GamepadContext,
+    gamepad_system: ImplementationContext,
     gamepads: HashMap<GamepadId, Gamepad>,
 }
 
 impl GamepadContext {
     /// Initializes the gamepad context.
     pub fn init() -> Result<Self, String> {
-        let gamepad_system = backend::GamepadContext::init()?;
+        let gamepad_system = ImplementationContext::new()?;
         let gamepads = HashMap::new();
 
         Ok(Self {

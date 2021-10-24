@@ -1,27 +1,26 @@
 pub use sdl2::controller::{Axis, Button};
 
 use crate::analog::AnalogInputValue;
+use crate::{Gamepad, GamepadId};
 use std::collections::HashMap;
 
-/// The instance Id of a gamepad.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct GamepadId(u32);
+pub type ImplementationId = u32;
 
-pub struct Gamepad(sdl2::controller::GameController);
+pub struct ImplementationGamepad(sdl2::controller::GameController);
 
-impl super::Detachable for Gamepad {
+impl super::BackendGamepad for ImplementationGamepad {
     fn connected(&self) -> bool {
         self.0.attached()
     }
 }
 
-pub struct GamepadContext {
+pub struct ImplementationContext {
     sdl_context: sdl2::Sdl,
     controller_subsystem: sdl2::GameControllerSubsystem,
 }
 
-impl GamepadContext {
-    pub fn init() -> Result<Self, String> {
+impl ImplementationContext {
+    pub fn new() -> Result<Self, String> {
         let sdl_context = sdl2::init()?;
         let controller_subsystem = sdl_context.game_controller()?;
 
@@ -32,8 +31,8 @@ impl GamepadContext {
     }
 }
 
-impl super::GamepadSystem for GamepadContext {
-    fn update(&mut self, gamepads: &mut HashMap<GamepadId, crate::Gamepad>) -> Result<(), String> {
+impl super::Backend for ImplementationContext {
+    fn update(&mut self, gamepads: &mut HashMap<GamepadId, Gamepad>) -> Result<(), String> {
         let mut event_pump = self.sdl_context.event_pump()?;
 
         for (_, gamepad) in gamepads.iter_mut() {
@@ -51,7 +50,7 @@ impl super::GamepadSystem for GamepadContext {
 
                         gamepads.insert(
                             GamepadId(gamepad.instance_id()),
-                            crate::Gamepad::new(Gamepad(gamepad)),
+                            Gamepad::new(ImplementationGamepad(gamepad)),
                         );
 
                         #[cfg(debug_assertions)]
