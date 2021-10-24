@@ -4,6 +4,8 @@ use crate::analog::AnalogInputValue;
 use crate::{Gamepad, GamepadId};
 use std::collections::HashMap;
 
+use crate::Result;
+
 pub type ImplementationId = u32;
 
 pub struct ImplementationGamepad(sdl2::controller::GameController);
@@ -20,7 +22,7 @@ pub struct ImplementationContext {
 }
 
 impl ImplementationContext {
-    pub fn new() -> Result<Self, String> {
+    pub fn new() -> Result<Self> {
         let sdl_context = sdl2::init()?;
         let controller_subsystem = sdl_context.game_controller()?;
 
@@ -32,7 +34,7 @@ impl ImplementationContext {
 }
 
 impl super::Backend for ImplementationContext {
-    fn update(&mut self, gamepads: &mut HashMap<GamepadId, Gamepad>) -> Result<(), String> {
+    fn update(&mut self, gamepads: &mut HashMap<GamepadId, Gamepad>) -> Result<()> {
         let mut event_pump = self.sdl_context.event_pump()?;
 
         for (_, gamepad) in gamepads.iter_mut() {

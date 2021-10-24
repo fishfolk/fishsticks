@@ -8,13 +8,16 @@ cfg_if::cfg_if! {
         mod implementation;
     }
 }
+
 pub use implementation::*;
 
 use crate::{Gamepad, GamepadId};
 use std::collections::HashMap;
 
+use crate::Result;
+
 pub trait Backend {
-    fn update(&mut self, gamepads: &mut HashMap<GamepadId, Gamepad>) -> Result<(), String>;
+    fn update(&mut self, gamepads: &mut HashMap<GamepadId, Gamepad>) -> Result<()>;
 }
 
 pub trait BackendGamepad {

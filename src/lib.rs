@@ -9,6 +9,9 @@ pub mod analog;
 pub mod digital;
 
 mod backend;
+pub mod error;
+
+use error::Result;
 
 pub use backend::{Axis, Button};
 
@@ -56,7 +59,7 @@ pub struct GamepadContext {
 
 impl GamepadContext {
     /// Initializes the gamepad context.
-    pub fn init() -> Result<Self, String> {
+    pub fn init() -> Result<Self> {
         let gamepad_system = ImplementationContext::new()?;
         let gamepads = HashMap::new();
 
@@ -82,7 +85,7 @@ impl GamepadContext {
     }
 
     /// Updates the state of all gamepads.
-    pub fn update(&mut self) -> Result<(), String> {
+    pub fn update(&mut self) -> Result<()> {
         self.gamepad_system.update(&mut self.gamepads)
     }
 }
