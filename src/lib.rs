@@ -7,19 +7,20 @@
 
 pub mod analog;
 pub mod digital;
-
-mod backend;
 pub mod error;
 
-use error::Result;
+mod backend;
 
 pub use backend::{Axis, Button};
 
 use analog::AnalogInput;
+use analog::{AnalogInputValue, Deadzone};
 use backend::{Backend, BackendGamepad};
 use backend::{ImplementationContext, ImplementationGamepad};
 use digital::DigitalInput;
 use std::collections::HashMap;
+
+use error::Result;
 
 /// The instance Id of a gamepad.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -87,5 +88,21 @@ impl GamepadContext {
     /// Updates the state of all gamepads.
     pub fn update(&mut self) -> Result<()> {
         self.gamepad_system.update(&mut self.gamepads)
+    }
+
+    /// Sets the analog deadzone for all analog inputs.
+    pub fn set_deadzone(&mut self, deadzone: f32) {
+        for (_, gamepad) in self.gamepads.iter_mut() {
+            let deadzone = Deadzone::from(AnalogInputValue::from(deadzone));
+            gamepad.analog_inputs.set_deadzone(deadzone);
+        }
+    }
+
+    /// Sets the digital deadzone for all analog inputs.
+    pub fn set_deadzone_digital(&mut self, deadzone: f32) {
+        for (_, gamepad) in self.gamepads.iter_mut() {
+            let deadzone = Deadzone::from(AnalogInputValue::from(deadzone));
+            gamepad.analog_inputs.set_deadzone_digital(deadzone);
+        }
     }
 }
