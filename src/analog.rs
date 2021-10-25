@@ -37,7 +37,7 @@ impl From<AnalogInputValue> for f32 {
 
 /// Wrapper around `f32` for deadzones.
 #[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd)]
-struct Deadzone(f32);
+pub(crate) struct Deadzone(f32);
 
 impl From<AnalogInputValue> for Deadzone {
     fn from(value: AnalogInputValue) -> Self {
@@ -181,6 +181,14 @@ where
         self.just_deactivated.clear();
         self.just_activated_digital.clear();
         self.just_deactivated_digital.clear();
+    }
+
+    pub(crate) fn set_deadzone(&mut self, deadzone: Deadzone) {
+        self.deadzone = deadzone;
+    }
+
+    pub(crate) fn set_deadzone_digital(&mut self, deadzone: Deadzone) {
+        self.deadzone_digital = deadzone;
     }
 }
 
