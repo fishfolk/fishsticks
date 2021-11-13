@@ -15,8 +15,8 @@ pub use backend::{Axis, Button};
 
 use analog::AnalogInput;
 use analog::{AnalogInputValue, Deadzone};
-use backend::{Backend, BackendGamepad};
-use backend::{ImplementationContext, ImplementationGamepad};
+use backend::Backend;
+use backend::{ImplementationContext, OwnedImplementationGamepad};
 use digital::DigitalInput;
 use std::collections::HashMap;
 
@@ -28,7 +28,9 @@ pub struct GamepadId(backend::ImplementationId);
 
 /// Holds the state of a gamepad.
 pub struct Gamepad {
-    internal_gamepad: ImplementationGamepad,
+    // Backends that produce owned gamepads, such as SDL2, need this to keep the gamepads open.
+    // Backends that produce references to gamepads, such as gilrs, do not need this.
+    owned_internal_gamepad: Option<OwnedImplementationGamepad>,
     /// Analog inputs, such as thumbsticks.
     pub analog_inputs: AnalogInput<Axis>,
     /// Digital inputs, such as buttons.
@@ -36,11 +38,18 @@ pub struct Gamepad {
 }
 
 impl Gamepad {
-    fn new(internal_gamepad: ImplementationGamepad) -> Self {
+    fn new() -> Self {
         Self {
-            internal_gamepad,
+            owned_internal_gamepad: Option::<OwnedImplementationGamepad>::None,
             analog_inputs: Default::default(),
             digital_inputs: Default::default(),
+        }
+    }
+
+    fn insert_owned_gamepad(self, owned_internal_gamepad: OwnedImplementationGamepad) -> Self {
+        Self {
+            owned_internal_gamepad: Some(owned_internal_gamepad),
+            ..self
         }
     }
 
@@ -77,12 +86,9 @@ impl GamepadContext {
         self.gamepads.get(&id)
     }
 
-    /// Gets an iterator over all connected gamepads.
+    /// Gets an iterator over all gamepads.
     pub fn gamepads(&self) -> impl Iterator<Item = (GamepadId, &Gamepad)> {
-        self.gamepads
-            .iter()
-            .filter(|(_, gamepad)| gamepad.internal_gamepad.connected())
-            .map(|(&id, gamepad)| (id, gamepad))
+        self.gamepads.iter().map(|(&id, gamepad)| (id, gamepad))
     }
 
     /// Updates the state of all gamepads.

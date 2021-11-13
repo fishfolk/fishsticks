@@ -8,13 +8,7 @@ use crate::Result;
 
 pub type ImplementationId = u32;
 
-pub struct ImplementationGamepad(sdl2::controller::GameController);
-
-impl super::BackendGamepad for ImplementationGamepad {
-    fn connected(&self) -> bool {
-        self.0.attached()
-    }
-}
+pub struct OwnedImplementationGamepad(sdl2::controller::GameController);
 
 pub struct ImplementationContext {
     sdl_context: sdl2::Sdl,
@@ -52,7 +46,8 @@ impl super::Backend for ImplementationContext {
 
                         gamepads.insert(
                             GamepadId(gamepad.instance_id()),
-                            Gamepad::new(ImplementationGamepad(gamepad)),
+                            Gamepad::new()
+                                .insert_owned_gamepad(OwnedImplementationGamepad(gamepad)),
                         );
 
                         #[cfg(debug_assertions)]
@@ -64,7 +59,9 @@ impl super::Backend for ImplementationContext {
                     let name = gamepads
                         .get(&GamepadId(which))
                         .unwrap()
-                        .internal_gamepad
+                        .owned_internal_gamepad
+                        .as_ref()
+                        .unwrap()
                         .0
                         .name();
 
