@@ -2,7 +2,10 @@
 
 [![Apache-2.0 OR MIT][license-shield]](LICENSE)
 
-System for handling gamepad input, using SDL2's game controller API as the backend.
+Wrapper library for handling gamepad input. Currently supports the following backends:
+
+- SDL2
+- gilrs
 
 ## License
 
