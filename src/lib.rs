@@ -30,6 +30,7 @@ pub struct GamepadId(backend::ImplementationId);
 pub struct Gamepad {
     // Backends that produce owned gamepads, such as SDL2, need this to keep the gamepads open.
     // Backends that produce references to gamepads, such as gilrs, do not need this.
+    #[allow(dead_code)]
     owned_internal_gamepad: Option<OwnedImplementationGamepad>,
     /// Analog inputs, such as thumbsticks.
     pub analog_inputs: AnalogInput<Axis>,
@@ -38,18 +39,11 @@ pub struct Gamepad {
 }
 
 impl Gamepad {
-    fn new() -> Self {
+    fn new(owned_internal_gamepad: Option<OwnedImplementationGamepad>) -> Self {
         Self {
-            owned_internal_gamepad: Option::<OwnedImplementationGamepad>::None,
+            owned_internal_gamepad,
             analog_inputs: Default::default(),
             digital_inputs: Default::default(),
-        }
-    }
-
-    fn insert_owned_gamepad(self, owned_internal_gamepad: OwnedImplementationGamepad) -> Self {
-        Self {
-            owned_internal_gamepad: Some(owned_internal_gamepad),
-            ..self
         }
     }
 

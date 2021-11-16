@@ -33,7 +33,7 @@ impl super::Backend for ImplementationContext {
             use gilrs::EventType;
             match event {
                 EventType::Connected => {
-                    gamepads.insert(GamepadId(id), Gamepad::new());
+                    gamepads.insert(GamepadId(id), Gamepad::new(None));
 
                     #[cfg(debug_assertions)]
                     println!("Added gamepad \"{}\"", self.context.gamepad(id).name());

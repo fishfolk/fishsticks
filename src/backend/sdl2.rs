@@ -46,8 +46,7 @@ impl super::Backend for ImplementationContext {
 
                         gamepads.insert(
                             GamepadId(gamepad.instance_id()),
-                            Gamepad::new()
-                                .insert_owned_gamepad(OwnedImplementationGamepad(gamepad)),
+                            Gamepad::new(Some(OwnedImplementationGamepad(gamepad))),
                         );
 
                         #[cfg(debug_assertions)]
