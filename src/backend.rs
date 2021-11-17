@@ -1,11 +1,12 @@
 cfg_if::cfg_if! {
-    if #[cfg(feature = "gilrs")] {
+    if #[cfg(feature = "sdl2")] {
+        #[path = "backend/sdl2.rs"]
+        mod implementation;
+    } else if #[cfg(feature = "gilrs")] {
         #[path = "backend/gilrs.rs"]
         mod implementation;
     } else {
-        // SDL2 has the highest compatibility of all game input libraries,
-        // so it should be the default implementation.
-        #[path = "backend/sdl2.rs"]
+        #[path = "backend/dummy.rs"]
         mod implementation;
     }
 }

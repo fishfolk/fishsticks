@@ -8,7 +8,7 @@ use crate::Result;
 
 pub type ImplementationId = gilrs::GamepadId;
 
-pub struct OwnedImplementationGamepad;
+pub enum OwnedImplementationGamepad {}
 
 pub struct ImplementationContext {
     context: gilrs::Gilrs,
