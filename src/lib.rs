@@ -1,9 +1,10 @@
-//! System for handling gamepad input.
+//! Wrapper library for handling gamepad input. API is unstable and may change at any time.
 //!
-//! API is unstable and may change at any time.
-//! Uses SDL2 as the backend.
+//! Uses SDL2 as the backend by default.
+//! To use gilrs instead, disable default features and enable the `gilrs` feature.
 
 #![warn(missing_docs)]
+#![cfg_attr(not(any(feature = "sdl2", feature = "gilrs")), allow(dead_code))]
 
 pub mod analog;
 pub mod digital;
