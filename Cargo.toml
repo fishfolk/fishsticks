@@ -2,6 +2,14 @@
 name = "fishsticks"
 version = "0.1.1"
 edition = "2018"
+keywords = ["gamedev"]
+categories = ["game-development"]
+repository = "https://github.com/PotatoTech/fishsticks"
+homepage = "https://github.com/PotatoTech/fishsticks"
+readme = "README.md"
+description = """
+A simple gamepad input library
+"""
 
 [features]
 default = ["sdl2"]
