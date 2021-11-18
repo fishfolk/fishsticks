@@ -1,11 +1,12 @@
 [package]
 name = "fishsticks"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2018"
 keywords = ["gamedev"]
 categories = ["game-development"]
 repository = "https://github.com/PotatoTech/fishsticks"
 homepage = "https://github.com/PotatoTech/fishsticks"
+license = "Apache-2.0 OR MIT"
 readme = "README.md"
 description = """
 A simple gamepad input library
