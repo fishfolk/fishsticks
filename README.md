@@ -1,6 +1,8 @@
 # fishsticks
 
-[![Apache-2.0 OR MIT][license-shield]](LICENSE)
+[![Crates.io][crates-io-badge]][crates-io]
+[![Documentation][docs-badge]][docs]
+[![License][license-badge]](LICENSE)
 
 Wrapper library for handling gamepad input. Currently supports the following backends:
 
@@ -21,6 +23,10 @@ for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 as above, without any additional terms or conditions.
 
 <!-- Markdown links and images -->
-[license-shield]: https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue?style=flat-square
+[crates-io-badge]: https://img.shields.io/crates/v/fishsticks?style=flat-square
+[crates-io]: https://crates.io/crates/fishsticks
+[docs-badge]: https://img.shields.io/docsrs/fishsticks?style=flat-square
+[docs]: https://docs.rs/fishsticks
+[license-badge]: https://img.shields.io/crates/l/fishsticks?style=flat-square
 [license-apache]: docs/LICENSE-APACHE
 [license-mit]: docs/LICENSE-MIT
