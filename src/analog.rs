@@ -74,7 +74,7 @@ where
     /// Returns `0.0` if the input is within the analog deadzone, or if it has not been read yet.
     pub fn value(&self, input: T) -> f32 {
         match self.inputs.get(&input) {
-            Some(&value) if Deadzone::from(value) > self.deadzone => value.get(),
+            Some(&value) if Deadzone::from(value) >= self.deadzone => value.get(),
             _ => 0.0,
         }
     }
@@ -99,7 +99,7 @@ where
     /// and `0.0` otherwise.
     pub fn digital_value(&self, input: T) -> f32 {
         match self.inputs.get(&input) {
-            Some(&value) if Deadzone::from(value) > self.digital_deadzone => {
+            Some(&value) if Deadzone::from(value) >= self.digital_deadzone => {
                 if value.get() < 0.0 {
                     ANALOG_MIN
                 } else {
