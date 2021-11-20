@@ -74,7 +74,11 @@ where
     /// Returns `0.0` if the input is within the analog deadzone, or if it has not been read yet.
     pub fn value(&self, input: T) -> f32 {
         match self.inputs.get(&input) {
-            Some(&value) if Deadzone::from(value) >= self.deadzone => value.get(),
+            Some(&value) if Deadzone::from(value) >= self.deadzone => {
+                let deadzone = self.deadzone.get();
+                let remapped_value = (value.get().abs() - deadzone) / (ANALOG_MAX - deadzone);
+                value.get().signum() * remapped_value
+            }
             _ => 0.0,
         }
     }
@@ -95,15 +99,17 @@ where
 
     /// Converts an analog input to a digital value.
     ///
-    /// Returns either `ANALOG_MIN` or `ANALOG_MAX` when the input is outside the digital deadzone,
-    /// and `0.0` otherwise.
+    /// Returns either `ANALOG_MIN` or `ANALOG_MAX` when a nonzero input is outside
+    /// the digital deadzone, and `0.0` otherwise.
     pub fn digital_value(&self, input: T) -> f32 {
         match self.inputs.get(&input) {
             Some(&value) if Deadzone::from(value) >= self.digital_deadzone => {
                 if value.get() < 0.0 {
                     ANALOG_MIN
-                } else {
+                } else if value.get() > 0.0 {
                     ANALOG_MAX
+                } else {
+                    0.0
                 }
             }
             _ => 0.0,
