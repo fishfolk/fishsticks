@@ -12,6 +12,12 @@ pub const ANALOG_MAX: f32 = 1.0;
 #[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub(crate) struct AnalogInputValue(f32);
 
+impl AnalogInputValue {
+    fn get(&self) -> f32 {
+        self.0
+    }
+}
+
 impl From<i16> for AnalogInputValue {
     fn from(value: i16) -> Self {
         let analog_value = value as f32 / i16::MAX as f32;
@@ -29,25 +35,19 @@ impl From<f32> for AnalogInputValue {
     }
 }
 
-impl From<AnalogInputValue> for f32 {
-    fn from(value: AnalogInputValue) -> Self {
-        value.0
-    }
-}
-
 /// Wrapper around `f32` for deadzones.
 #[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub(crate) struct Deadzone(f32);
 
-impl From<AnalogInputValue> for Deadzone {
-    fn from(value: AnalogInputValue) -> Self {
-        Self(value.0.abs())
+impl Deadzone {
+    fn get(&self) -> f32 {
+        self.0
     }
 }
 
-impl From<Deadzone> for f32 {
-    fn from(value: Deadzone) -> Self {
-        value.0
+impl From<AnalogInputValue> for Deadzone {
+    fn from(value: AnalogInputValue) -> Self {
+        Self(value.0.abs())
     }
 }
 
@@ -74,7 +74,7 @@ where
     /// Returns `0.0` if the input is within the analog deadzone, or if it has not been read yet.
     pub fn value(&self, input: T) -> f32 {
         match self.inputs.get(&input) {
-            Some(&value) if Deadzone::from(value) > self.deadzone => f32::from(value),
+            Some(&value) if Deadzone::from(value) > self.deadzone => value.get(),
             _ => 0.0,
         }
     }
@@ -100,7 +100,7 @@ where
     pub fn digital_value(&self, input: T) -> f32 {
         match self.inputs.get(&input) {
             Some(&value) if Deadzone::from(value) > self.digital_deadzone => {
-                if f32::from(value) < 0.0 {
+                if value.get() < 0.0 {
                     ANALOG_MIN
                 } else {
                     ANALOG_MAX
@@ -131,12 +131,12 @@ where
 {
     pub(crate) fn set(&mut self, input: T, value: AnalogInputValue) {
         let old_value = self.inputs.insert(input, value);
-        let value = f32::from(value);
-        let deadzone = f32::from(self.deadzone);
-        let digital_deadzone = f32::from(self.digital_deadzone);
+        let value = value.get();
+        let deadzone = self.deadzone.get();
+        let digital_deadzone = self.digital_deadzone.get();
 
         if let Some(old_value) = old_value {
-            let old_value = f32::from(old_value);
+            let old_value = old_value.get();
 
             if value.abs() < deadzone {
                 self.just_activated.remove(&input);
