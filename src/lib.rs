@@ -92,6 +92,9 @@ impl GamepadContext {
     }
 
     /// Sets the analog deadzone for all analog inputs.
+    ///
+    /// Positive values outside the deadzone get remapped to the range `[0.0, ANALOG_MAX]`.\
+    /// Negative values get remapped to `[ANALOG_MIN, 0.0]`.
     pub fn set_deadzone(&mut self, deadzone: f32) {
         for (_, gamepad) in self.gamepads.iter_mut() {
             let deadzone = Deadzone::from(AnalogInputValue::from(deadzone));
@@ -100,10 +103,10 @@ impl GamepadContext {
     }
 
     /// Sets the digital deadzone for all analog inputs.
-    pub fn set_deadzone_digital(&mut self, deadzone: f32) {
+    pub fn set_digital_deadzone(&mut self, deadzone: f32) {
         for (_, gamepad) in self.gamepads.iter_mut() {
             let deadzone = Deadzone::from(AnalogInputValue::from(deadzone));
-            gamepad.analog_inputs.set_deadzone_digital(deadzone);
+            gamepad.analog_inputs.set_digital_deadzone(deadzone);
         }
     }
 }

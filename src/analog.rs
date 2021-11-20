@@ -12,6 +12,12 @@ pub const ANALOG_MAX: f32 = 1.0;
 #[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub(crate) struct AnalogInputValue(f32);
 
+impl AnalogInputValue {
+    fn get(&self) -> f32 {
+        self.0
+    }
+}
+
 impl From<i16> for AnalogInputValue {
     fn from(value: i16) -> Self {
         let analog_value = value as f32 / i16::MAX as f32;
@@ -29,25 +35,19 @@ impl From<f32> for AnalogInputValue {
     }
 }
 
-impl From<AnalogInputValue> for f32 {
-    fn from(value: AnalogInputValue) -> Self {
-        value.0
-    }
-}
-
 /// Wrapper around `f32` for deadzones.
 #[derive(Default, Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub(crate) struct Deadzone(f32);
 
-impl From<AnalogInputValue> for Deadzone {
-    fn from(value: AnalogInputValue) -> Self {
-        Self(value.0.abs())
+impl Deadzone {
+    fn get(&self) -> f32 {
+        self.0
     }
 }
 
-impl From<Deadzone> for f32 {
-    fn from(value: Deadzone) -> Self {
-        value.0
+impl From<AnalogInputValue> for Deadzone {
+    fn from(value: AnalogInputValue) -> Self {
+        Self(value.0.abs())
     }
 }
 
@@ -62,7 +62,7 @@ pub struct AnalogInput<T> {
 
     just_activated_digital: HashSet<T>,
     just_deactivated_digital: HashSet<T>,
-    deadzone_digital: Deadzone,
+    digital_deadzone: Deadzone,
 }
 
 impl<T> AnalogInput<T>
@@ -74,7 +74,11 @@ where
     /// Returns `0.0` if the input is within the analog deadzone, or if it has not been read yet.
     pub fn value(&self, input: T) -> f32 {
         match self.inputs.get(&input) {
-            Some(&value) if Deadzone::from(value) > self.deadzone => f32::from(value),
+            Some(&value) if Deadzone::from(value) >= self.deadzone => {
+                let deadzone = self.deadzone.get();
+                let remapped_value = (value.get().abs() - deadzone) / (ANALOG_MAX - deadzone);
+                value.get().signum() * remapped_value
+            }
             _ => 0.0,
         }
     }
@@ -95,15 +99,17 @@ where
 
     /// Converts an analog input to a digital value.
     ///
-    /// Returns either `ANALOG_MIN` or `ANALOG_MAX` when the input is outside the digital deadzone,
-    /// and `0.0` otherwise.
-    pub fn value_digital(&self, input: T) -> f32 {
+    /// Returns either `ANALOG_MIN` or `ANALOG_MAX` when a nonzero input is outside
+    /// the digital deadzone, and `0.0` otherwise.
+    pub fn digital_value(&self, input: T) -> f32 {
         match self.inputs.get(&input) {
-            Some(&value) if Deadzone::from(value) > self.deadzone_digital => {
-                if f32::from(value) < 0.0 {
+            Some(&value) if Deadzone::from(value) >= self.digital_deadzone => {
+                if value.get() < 0.0 {
                     ANALOG_MIN
-                } else {
+                } else if value.get() > 0.0 {
                     ANALOG_MAX
+                } else {
+                    0.0
                 }
             }
             _ => 0.0,
@@ -113,7 +119,7 @@ where
     /// Checks if an analog input just left the digital deadzone.
     pub fn just_activated_digital(&self, input: T) -> Option<f32> {
         if self.just_activated_digital.contains(&input) {
-            Some(self.value_digital(input))
+            Some(self.digital_value(input))
         } else {
             None
         }
@@ -131,12 +137,12 @@ where
 {
     pub(crate) fn set(&mut self, input: T, value: AnalogInputValue) {
         let old_value = self.inputs.insert(input, value);
-        let value = f32::from(value);
-        let deadzone = f32::from(self.deadzone);
-        let deadzone_digital = f32::from(self.deadzone_digital);
+        let value = value.get();
+        let deadzone = self.deadzone.get();
+        let digital_deadzone = self.digital_deadzone.get();
 
         if let Some(old_value) = old_value {
-            let old_value = f32::from(old_value);
+            let old_value = old_value.get();
 
             if value.abs() < deadzone {
                 self.just_activated.remove(&input);
@@ -153,14 +159,14 @@ where
                 }
             }
 
-            if value.abs() < deadzone_digital {
+            if value.abs() < digital_deadzone {
                 self.just_activated_digital.remove(&input);
-                if old_value.abs() >= deadzone_digital {
+                if old_value.abs() >= digital_deadzone {
                     self.just_deactivated_digital.insert(input);
                 }
             } else {
                 self.just_deactivated_digital.remove(&input);
-                if old_value.abs() < deadzone_digital || value.signum() != old_value.signum() {
+                if old_value.abs() < digital_deadzone || value.signum() != old_value.signum() {
                     self.just_activated_digital.insert(input);
                 }
             }
@@ -169,7 +175,7 @@ where
                 self.just_activated.insert(input);
                 self.just_deactivated.remove(&input);
             }
-            if value.abs() >= deadzone_digital {
+            if value.abs() >= digital_deadzone {
                 self.just_activated_digital.insert(input);
                 self.just_deactivated_digital.remove(&input);
             }
@@ -187,8 +193,8 @@ where
         self.deadzone = deadzone;
     }
 
-    pub(crate) fn set_deadzone_digital(&mut self, deadzone: Deadzone) {
-        self.deadzone_digital = deadzone;
+    pub(crate) fn set_digital_deadzone(&mut self, deadzone: Deadzone) {
+        self.digital_deadzone = deadzone;
     }
 }
 
@@ -203,7 +209,7 @@ impl<T> Default for AnalogInput<T> {
 
             just_activated_digital: Default::default(),
             just_deactivated_digital: Default::default(),
-            deadzone_digital: DEFAULT_DEADZONE_DIGITAL,
+            digital_deadzone: DEFAULT_DEADZONE_DIGITAL,
         }
     }
 }
