@@ -8,6 +8,12 @@ use crate::Result;
 
 pub type ImplementationId = u32;
 
+impl From<&GamepadId> for usize {
+    fn from(id: &GamepadId) -> Self {
+        id.0 as usize
+    }
+}
+
 pub struct OwnedImplementationGamepad(sdl2::controller::GameController);
 
 pub struct ImplementationContext {

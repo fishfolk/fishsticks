@@ -8,6 +8,12 @@ use crate::Result;
 
 pub type ImplementationId = gilrs::GamepadId;
 
+impl From<&GamepadId> for usize {
+    fn from(id: &GamepadId) -> Self {
+        id.0.into()
+    }
+}
+
 pub enum OwnedImplementationGamepad {}
 
 pub struct ImplementationContext {
