@@ -8,8 +8,8 @@ use crate::Result;
 
 pub type ImplementationId = u32;
 
-impl From<&GamepadId> for usize {
-    fn from(id: &GamepadId) -> Self {
+impl From<GamepadId> for usize {
+    fn from(id: GamepadId) -> Self {
         id.0 as usize
     }
 }
