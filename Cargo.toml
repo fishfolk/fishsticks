@@ -1,7 +1,7 @@
 [package]
 name = "fishsticks"
 version = "0.2.2"
-edition = "2018"
+edition = "2021"
 keywords = ["gamedev"]
 categories = ["game-development"]
 repository = "https://github.com/fishfight/fishsticks"
